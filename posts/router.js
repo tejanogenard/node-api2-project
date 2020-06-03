@@ -55,20 +55,22 @@ router.get("/:id/comments", (req, res) => {
 
 //POST endpoint creates a comment for a post with the specific ID 
 router.post('/:id/comments', (req, res) => {
-    if(req.body.text.length){
+    if (req.body.text.length) {
         posts.insertComment(req.body)
-        .then( comment => {
-            res.status(201).json({comment})
-        })
-        .catch( err => res.status(500).json({error: "There was an error while saving the comment to the database"}))
+            .then(comment => {
+                res.status(201).json({
+                    comment
+                })
+            })
+            .catch(err => res.status(500).json({
+                error: "There was an error while saving the comment to the database"
+            }))
     } else {
-        res.status(400).json({ errorMessage: "Please provide text for the comment." })
+        res.status(400).json({
+            errorMessage: "Please provide text for the comment."
+        })
     }
 })
-
-
-
-
 
 // POST endpoint returns the array with an added post 
 router.post("/", (req, res) => {
@@ -89,8 +91,61 @@ router.post("/", (req, res) => {
                     error: "error adding post to the databse"
                 })
             })
-
     }
 })
+
+// PUT endpoint Updates a post with a specific ID 
+// router.put('/:id', (req, res) =>{
+//     posts.update(req.params, req.body)
+//     .then(post => {
+//         res.status(201).json({post})
+//     })
+//     .catch( err => res.status(500).json({ error: "The post information could not be modified." }))
+// })
+router.put("/:id", (req, res) => {
+    const {
+        id
+    } = req.params;
+    const data = req.body;
+
+    posts.findById(id).then(post => {
+        if (!post.length) {
+            res.status(404).json({
+                message: "The post with the specified ID does not exist"
+            })
+        } else if (post.length) {
+            if (!data.title || !data.contents) {
+                res.status(400).json({
+                    errorMessage: "Please provide title and contents for the post"
+                })
+            } else if (data.title && data.contents) {
+                posts.update(id, data)
+                    .then(upd => {
+                        res.status(200).json(data);
+                    })
+                    .catch(err => {
+                        res.status(500).json({
+                            error: "The post information could not be modified"
+                        });
+                    });
+            }
+        }
+    });
+});
+
+//DELETE endpoint by specific id
+
+router.delete('/:id', (req, res) => {
+    posts.remove(req.params.id)
+    .then(post => {
+        res.status(201).json({post})
+    })
+    .catch(err => {
+        res.status(500).json({
+            error: "The post could not be removed"
+        })
+    })
+})
+
 
 module.exports = router
