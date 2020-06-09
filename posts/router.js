@@ -55,22 +55,51 @@ router.get("/:id/comments", (req, res) => {
 
 //POST endpoint creates a comment for a post with the specific ID 
 router.post('/:id/comments', (req, res) => {
-    if (req.body.text.length) {
-        posts.insertComment(req.body)
-            .then(comment => {
-                res.status(201).json({
-                    comment
+    const  id  = req.params.id
+    const comment = req.body
+    const newComment = {...comment, post_id: id}
+    posts.findById(id)
+        .then(post => {
+            if (comment) {
+                posts.insertComment(req.body)
+                    .then(comment => {
+                        res.status(201).json({
+                            comment
+                        })
+                    })
+                    .catch(err => res.status(500).json({
+                        error: "There was an error while saving the comment to the database"
+                    }))
+            } else {
+                res.status(400).json({
+                    errorMessage: "Please provide text for the comment."
                 })
-            })
-            .catch(err => res.status(500).json({
-                error: "There was an error while saving the comment to the database"
-            }))
-    } else {
-        res.status(400).json({
-            errorMessage: "Please provide text for the comment."
+            }
         })
-    }
 })
+
+router.post('/:id/comments', (req, res) => {
+    const id = req.params.id;
+    const comment = req.body;
+    const newComment = {...comment, post_id: id}
+    posts.findById(id)
+        .then(post => {
+            if (post.length === 0) {
+                res.status(404).json({ message: "the post doesnt exist" })
+            } else if (!comment.text) {
+                res.status(400).json({ Message: "please provide text" })
+            }
+            else {
+                posts.insertComment(newComment)
+                .then(({id}) => {
+                  posts.findCommentById(id)
+                  .then(inserted => {
+                    res.status(201).json(inserted)
+                  })
+                })
+            }
+        })
+    })
 
 // POST endpoint returns the array with an added post 
 router.post("/", (req, res) => {
@@ -94,14 +123,7 @@ router.post("/", (req, res) => {
     }
 })
 
-// PUT endpoint Updates a post with a specific ID 
-// router.put('/:id', (req, res) =>{
-//     posts.update(req.params, req.body)
-//     .then(post => {
-//         res.status(201).json({post})
-//     })
-//     .catch( err => res.status(500).json({ error: "The post information could not be modified." }))
-// })
+
 router.put("/:id", (req, res) => {
     const {
         id
