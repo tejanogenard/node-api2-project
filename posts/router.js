@@ -78,28 +78,6 @@ router.post('/:id/comments', (req, res) => {
         })
 })
 
-router.post('/:id/comments', (req, res) => {
-    const id = req.params.id;
-    const comment = req.body;
-    const newComment = {...comment, post_id: id}
-    posts.findById(id)
-        .then(post => {
-            if (post.length === 0) {
-                res.status(404).json({ message: "the post doesnt exist" })
-            } else if (!comment.text) {
-                res.status(400).json({ Message: "please provide text" })
-            }
-            else {
-                posts.insertComment(newComment)
-                .then(({id}) => {
-                  posts.findCommentById(id)
-                  .then(inserted => {
-                    res.status(201).json(inserted)
-                  })
-                })
-            }
-        })
-    })
 
 // POST endpoint returns the array with an added post 
 router.post("/", (req, res) => {
